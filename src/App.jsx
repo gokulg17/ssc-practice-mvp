@@ -10,6 +10,7 @@ function TypingPractice({ passages }) {
   const [timer, setTimer] = useState(0);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [finalStats, setFinalStats] = useState(null);
 
   // keep index valid when passages change
   useEffect(() => {
@@ -18,37 +19,39 @@ function TypingPractice({ passages }) {
 
   const passage = passages[currentIndex]?.text || "";
 
+  // Timer
   useEffect(() => {
     let id;
     if (running && !finished) id = setInterval(() => setTimer((s) => s + 1), 1000);
     return () => clearInterval(id);
   }, [running, finished]);
 
-  useEffect(() => {
-    if (input === passage && passage.length > 0) {
-      setRunning(false);
-      setFinished(true);
-    }
-  }, [input, passage]);
-
   const restart = () => {
     setInput("");
     setTimer(0);
     setRunning(false);
     setFinished(false);
+    setFinalStats(null);
   };
 
-  const wpm = timer > 0 ? Math.round((input.trim().split(/\s+/).filter(Boolean).length) / (timer / 60)) : 0;
-  const passageWords = passage.trim().split(/\s+/);
-const inputWords = input.trim().split(/\s+/);
+  const handleSubmit = () => {
+    setRunning(false);
+    setFinished(true);
 
-let correctWords = 0;
-inputWords.forEach((word, i) => {
-  if (word === passageWords[i]) correctWords++;
-});
+    const passageWords = passage.trim().split(/\s+/);
+    const inputWords = input.trim().split(/\s+/);
 
-const errors = inputWords.length - correctWords;
-const accuracy = inputWords.length > 0 ? Math.round((correctWords / inputWords.length) * 100) : 100;
+    let correctWords = 0;
+    inputWords.forEach((word, i) => {
+      if (word === passageWords[i]) correctWords++;
+    });
+
+    const errors = inputWords.length - correctWords;
+    const accuracy = inputWords.length > 0 ? Math.round((correctWords / inputWords.length) * 100) : 100;
+    const wpm = timer > 0 ? Math.round(correctWords / (timer / 60)) : 0;
+
+    setFinalStats({ wpm, accuracy, errors });
+  };
 
   return (
     <div className="p-4">
@@ -69,12 +72,9 @@ const accuracy = inputWords.length > 0 ? Math.round((correctWords / inputWords.l
         ))}
       </div>
 
-      <div
-  className="rounded border p-3 mb-3 whitespace-pre-wrap bg-gray-50 overflow-y-auto max-h-[60vh]"
->
-  {passage || "No passages available. Add one in Admin."}
-</div>
-
+      <div className="rounded border p-3 mb-3 whitespace-pre-wrap bg-gray-50 overflow-y-auto max-h-[60vh]">
+        {passage || "No passages available. Add one in Admin."}
+      </div>
 
       <textarea
         className="w-full border p-2 rounded mb-3"
@@ -84,20 +84,28 @@ const accuracy = inputWords.length > 0 ? Math.round((correctWords / inputWords.l
           if (!running && !finished) setRunning(true);
           setInput(e.target.value);
         }}
-        disabled={!passage}
+        disabled={!passage || finished}
         placeholder={passage ? "Type exactly as shown above..." : "Add a passage in Admin to start typing."}
       />
 
       <div className="flex gap-4 items-center">
         <div>⏱ {timer}s</div>
-        <div>⚡ WPM: {wpm}</div>
-        <div>🎯 Accuracy: {accuracy}%</div>
-        <div>❌ Errors: {errors}</div>
-        {finished && (
-          <button onClick={restart} className="ml-auto bg-blue-500 text-white px-3 py-1 rounded">
-            Restart
-          </button>
+        {finalStats && (
+          <>
+            <div>⚡ WPM: {finalStats.wpm}</div>
+            <div>🎯 Accuracy: {finalStats.accuracy}%</div>
+            <div>❌ Errors: {finalStats.errors}</div>
+          </>
         )}
+      </div>
+
+      <div className="flex gap-2 mt-3">
+        <button onClick={handleSubmit} disabled={finished || !input} className="bg-green-500 text-white px-3 py-1 rounded">
+          Submit
+        </button>
+        <button onClick={restart} className="bg-blue-500 text-white px-3 py-1 rounded">
+          Restart
+        </button>
       </div>
     </div>
   );
