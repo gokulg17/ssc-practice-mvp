@@ -62,7 +62,12 @@ function TypingPractice({ passages }) {
         ))}
       </div>
 
-      <div className="rounded border p-3 mb-3 whitespace-pre-wrap bg-gray-50">{passage || "No passages available. Add one in Admin."}</div>
+      <div
+  className="rounded border p-3 mb-3 whitespace-pre-wrap bg-gray-50 overflow-y-auto max-h-[60vh]"
+>
+  {passage || "No passages available. Add one in Admin."}
+</div>
+
 
       <textarea
         className="w-full border p-2 rounded mb-3"
