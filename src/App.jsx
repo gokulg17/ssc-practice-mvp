@@ -39,9 +39,16 @@ function TypingPractice({ passages }) {
   };
 
   const wpm = timer > 0 ? Math.round((input.trim().split(/\s+/).filter(Boolean).length) / (timer / 60)) : 0;
-  const correctChars = input.split("").filter((c, i) => c === passage[i]).length;
-  const accuracy = input.length > 0 ? Math.round((correctChars / input.length) * 100) : 100;
-  const errors = Math.max(0, input.length - correctChars);
+  const passageWords = passage.trim().split(/\s+/);
+const inputWords = input.trim().split(/\s+/);
+
+let correctWords = 0;
+inputWords.forEach((word, i) => {
+  if (word === passageWords[i]) correctWords++;
+});
+
+const errors = inputWords.length - correctWords;
+const accuracy = inputWords.length > 0 ? Math.round((correctWords / inputWords.length) * 100) : 100;
 
   return (
     <div className="p-4">
